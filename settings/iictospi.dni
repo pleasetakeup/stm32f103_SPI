@@ -1,0 +1,81 @@
+[Stack]
+FillEnabled=0
+OverflowWarningsEnabled=1
+WarningThreshold=90
+SpWarningsEnabled=1
+WarnLogOnly=1
+UseTrigger=1
+TriggerName=main
+LimitSize=0
+ByteLimit=50
+[InterruptLog]
+LogEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+SumEnabled=0
+ShowTimeSum=1
+SumSortOrder=0
+[DataLog]
+LogEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+SumEnabled=0
+ShowTimeSum=1
+[Breakpoints2]
+Count=0
+[Interrupts]
+Enabled=1
+[MemoryMap]
+Enabled=0
+Base=0
+UseAuto=0
+TypeViolation=1
+UnspecRange=1
+ActionState=1
+[Trace1]
+Enabled=0
+ShowSource=1
+[Simulator]
+Freq=16000000
+[DebugChecksum]
+Checksum=-1642925421
+[CallStack]
+ShowArgs=0
+[Disassembly]
+MixedMode=1
+[DataSample]
+LogEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
+[Breakpoints]
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.597.11" 0 0 0 0 "" 0 ""
+Bp1=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.597.11" 0 0 0 0 "" 0 ""
+Bp2=_ "STD_CODE" "{$PROJ_DIR$\fwlib\src\stm8s_spi.c}.328.3" 1 0 0 0 "" 0 ""
+Bp3=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.269.21" 1 0 0 0 "" 0 ""
+Bp4=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.269.21" 1 0 0 0 "" 0 ""
+Bp5=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp6=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp7=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp8=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp9=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp10=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.569.2" 1 0 0 0 "" 0 ""
+Bp11=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp12=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.429.9" 1 0 0 0 "" 0 ""
+Bp13=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.569.2" 1 0 0 0 "" 0 ""
+Bp14=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.569.2" 1 0 0 0 "" 0 ""
+Bp15=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.453.2" 1 0 0 0 "" 0 ""
+Bp16=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.597.11" 0 0 0 0 "" 0 ""
+Bp17=_ "STD_CODE" "{$PROJ_DIR$\user\main.c}.597.11" 0 0 0 0 "" 0 ""
+Count=18
+[Aliases]
+Count=0
+SuppressDialog=0
+[DebuggerSettings]
+DisableInterruptsWhenStepping=0

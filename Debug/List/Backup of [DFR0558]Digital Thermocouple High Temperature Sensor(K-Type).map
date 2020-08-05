@@ -1,0 +1,329 @@
+###############################################################################
+#
+# IAR ELF Linker V2.20.1.176 for STM8                     16/Jun/2020  14:22:49
+# Copyright 2010-2015 IAR Systems AB.
+#
+#    Output file  =  
+#        C:\Users\feng\Documents\Tencent
+#        Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+#        Thermocouple High Temperature
+#        Sensor(K-Type)(V1.0)源码\Debug\Exe\Backup of [DFR0558]Digital
+#        Thermocouple High Temperature Sensor(K-Type).out
+#    Map file     =  
+#        C:\Users\feng\Documents\Tencent
+#        Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+#        Thermocouple High Temperature
+#        Sensor(K-Type)(V1.0)源码\Debug\List\Backup of [DFR0558]Digital
+#        Thermocouple High Temperature Sensor(K-Type).map
+#    Command line =  
+#        "C:\Users\feng\Documents\Tencent
+#        Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+#        Thermocouple High Temperature
+#        Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o" --redirect
+#        _Printf=_PrintfFullNoMb --redirect _Scanf=_ScanfFullNoMb -o
+#        "C:\Users\feng\Documents\Tencent
+#        Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+#        Thermocouple High Temperature
+#        Sensor(K-Type)(V1.0)源码\Debug\Exe\Backup of [DFR0558]Digital
+#        Thermocouple High Temperature Sensor(K-Type).out" --map
+#        "C:\Users\feng\Documents\Tencent
+#        Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+#        Thermocouple High Temperature
+#        Sensor(K-Type)(V1.0)源码\Debug\List\Backup of [DFR0558]Digital
+#        Thermocouple High Temperature Sensor(K-Type).map" --config "C:\Program
+#        Files (x86)\IAR Systems\Embedded Workbench
+#        7.3\stm8\config\lnkstm8.icf" --config_def _CSTACK_SIZE=0x100
+#        --config_def _HEAP_SIZE=0x100 --entry __iar_program_start --debug_lib
+#
+###############################################################################
+
+*******************************************************************************
+*** MESSAGES
+***
+
+Error[Li005]: no definition for "GPIO_WriteLow" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "CLK_HSIPrescalerConfig" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "GPIO_WriteHigh" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "SPI_SendData" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "GPIO_Init" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "UART2_DeInit" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "UART2_Init" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "UART2_ClearITPendingBit" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "UART2_ITConfig" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "UART2_Cmd" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "I2C_Init" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "I2C_ITConfig" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "SPI_Init" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+Error[Li005]: no definition for "SPI_Cmd" [referenced from
+          C:\Users\feng\Documents\Tencent
+          Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital
+          Thermocouple High Temperature
+          Sensor(K-Type)(V1.0)源码\Debug\Obj\main.o]
+
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+__SystemLibrary            = DLib
+__code_model               = small
+__core                     = stm8
+__data_model               = medium
+__dlib_file_descriptor     = 0
+__dlib_full_locale_support = 0
+__rt_version               = 4
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"A1":  place at start of [0x000000-0x0000ff] { rw section .vregs };
+"A2":  place at end of [0x000000-0x0017ff] { block CSTACK };
+"P2":  place in [from 0x000000 to 0x0017ff] {
+          block HEAP, rw section .far.bss, rw section .far.data,
+          rw section .far.noinit, rw section .far_func.textrw,
+          rw section .huge.bss, rw section .huge.data, rw section .huge.noinit,
+          rw section .huge_func.textrw, rw section .iar.dynexit,
+          rw section .near.bss, rw section .near.data, rw section .near.noinit,
+          rw section .near_func.textrw };
+"A3":  place at start of [0x008000-0x00ffff] { block INTVEC };
+"P3":  place in [from 0x008000 to 0x00ffff] {
+          ro section .far.data_init, ro section .far_func.textrw_init,
+          ro section .huge.data_init, ro section .huge_func.textrw_init,
+          ro section .iar.init_table, ro section .init_array,
+          ro section .near.data_init, ro section .near.rodata,
+          ro section .near_func.text, ro section .near_func.textrw_init,
+          ro section .tiny.data_init, ro section .tiny.rodata_init };
+
+  Section          Kind      Address   Size  Object
+  -------          ----      -------   ----  ------
+"A1":                                   0xc
+  .vregs           uninit   0x000000    0xc  vregs.o [4]
+                          - 0x00000c    0xc
+
+"P2":                                 0x104
+  .near.bss        zero     0x00000c  0x100  main.o [1]
+  .near.bss        zero     0x00010c    0x2  main.o [1]
+  .near.bss        zero     0x00010e    0x2  main.o [1]
+                          - 0x000110  0x104
+
+"A2":                                 0x100
+  CSTACK                    0x001700  0x100  <Block>
+    CSTACK         uninit   0x001700  0x100  <Block tail>
+                          - 0x001800  0x100
+
+"A3":                                  0x80
+  INTVEC                    0x008000   0x80  <Block>
+    .intvec        const    0x008000   0x80  interrupt.o [4]
+                          - 0x008080   0x80
+
+"P3":                                 0x261
+  .near_func.text  ro code  0x008080   0x6b  vreg_util.o [4]
+  .near_func.text  ro code  0x0080eb   0x54  main.o [1]
+  .near_func.text  ro code  0x00813f   0x47  main.o [1]
+  .near_func.text  ro code  0x008186   0x46  main.o [1]
+  .near_func.text  ro code  0x0081cc   0x3f  main.o [1]
+  .near_func.text  ro code  0x00820b   0x24  main.o [1]
+  .iar.init_table  const    0x00822f    0x8  - Linker created -
+  .near_func.text  ro code  0x008237   0x1e  main.o [1]
+  .near_func.text  ro code  0x008255   0x1e  main.o [1]
+  .near_func.text  ro code  0x008273   0x1e  init_small.o [4]
+  .near_func.text  ro code  0x008291   0x17  init.o [4]
+  .near_func.text  ro code  0x0082a8   0x14  __dbg_xxexit.o [3]
+  .near_func.text  ro code  0x0082bc   0x13  cstartup.o [4]
+  .near_func.text  ro code  0x0082cf    0x5  cexit.o [4]
+  .near_func.text  ro code  0x0082d4    0x3  interrupt.o [4]
+  .near_func.text  ro code  0x0082d7    0x3  low_level_init.o [4]
+  .near_func.text  ro code  0x0082da    0x3  exit.o [4]
+  .near_func.text  ro code  0x0082dd    0x3  unhandled_exception.o [4]
+  .near_func.text  ro code  0x0082e0    0x1  __dbg_break.o [3]
+                          - 0x0082e1  0x261
+
+
+*******************************************************************************
+*** INIT TABLE
+***
+
+          Address   Size
+          -------   ----
+Zero (__iar_zero_init2)
+    1 destination range, total size 0x104:
+          0x00000c  0x104
+
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module                 ro code  ro data  rw data
+    ------                 -------  -------  -------
+C:\Users\feng\Documents\Tencent Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital Thermocouple High Temperature Sensor(K-Type)(V1.0)源码\Debug\Obj: [1]
+    main.o                     384               260
+    ------------------------------------------------
+    Total:                     384               260
+
+command line: [2]
+    ------------------------------------------------
+    Total:
+
+dbgstm8smd.a: [3]
+    __dbg_break.o                1
+    __dbg_xxexit.o              20
+    ------------------------------------------------
+    Total:                      21
+
+dlstm8smn.a: [4]
+    cexit.o                      5
+    cstartup.o                  19
+    exit.o                       3
+    init.o                      23
+    init_small.o                30
+    interrupt.o                  3      128
+    low_level_init.o             3
+    unhandled_exception.o        3
+    vreg_util.o                107
+    vregs.o                                       12
+    ------------------------------------------------
+    Total:                     196      128       12
+
+    Linker created                        8      256
+----------------------------------------------------
+    Grand Total:               601      136      528
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                    Address   Size  Type      Object
+-----                    -------   ----  ----      ------
+.iar.init_table$$Base   0x00822f          --   Gb  - Linker created -
+.iar.init_table$$Limit  0x008237          --   Gb  - Linker created -
+?b0                     0x000000         Data  Gb  vregs.o [4]
+?b1                     0x000001         Data  Gb  vregs.o [4]
+?b10                    0x00000a         Data  Gb  vregs.o [4]
+?b11                    0x00000b         Data  Gb  vregs.o [4]
+?b2                     0x000002         Data  Gb  vregs.o [4]
+?b3                     0x000003         Data  Gb  vregs.o [4]
+?b4                     0x000004         Data  Gb  vregs.o [4]
+?b5                     0x000005         Data  Gb  vregs.o [4]
+?b6                     0x000006         Data  Gb  vregs.o [4]
+?b7                     0x000007         Data  Gb  vregs.o [4]
+?b8                     0x000008         Data  Gb  vregs.o [4]
+?b9                     0x000009         Data  Gb  vregs.o [4]
+?e0                     0x000001         Data  Gb  vregs.o [4]
+?e1                     0x000005         Data  Gb  vregs.o [4]
+?e2                     0x000009         Data  Gb  vregs.o [4]
+?epilogue_l2            0x0080cd         Code  Gb  vreg_util.o [4]
+?l0                     0x000000         Data  Gb  vregs.o [4]
+?l1                     0x000004         Data  Gb  vregs.o [4]
+?l2                     0x000008         Data  Gb  vregs.o [4]
+?mov_e0_e2              0x0080d4         Code  Gb  vreg_util.o [4]
+?mov_e2_e0              0x0080e1         Code  Gb  vreg_util.o [4]
+?mov_l0_l2              0x0080d1         Code  Gb  vreg_util.o [4]
+?mov_l2_l0              0x0080de         Code  Gb  vreg_util.o [4]
+?mov_w1_w5              0x0080d7         Code  Gb  vreg_util.o [4]
+?mov_w5_w1              0x0080e4         Code  Gb  vreg_util.o [4]
+?pop_l2                 0x0080ba         Code  Gb  vreg_util.o [4]
+?push_l2                0x008098         Code  Gb  vreg_util.o [4]
+?push_w4                0x008080         Code  Gb  vreg_util.o [4]
+?w0                     0x000000         Data  Gb  vregs.o [4]
+?w1                     0x000002         Data  Gb  vregs.o [4]
+?w2                     0x000004         Data  Gb  vregs.o [4]
+?w3                     0x000006         Data  Gb  vregs.o [4]
+?w4                     0x000008         Data  Gb  vregs.o [4]
+?w5                     0x00000a         Data  Gb  vregs.o [4]
+CSTACK$$Base            0x001700          --   Gb  - Linker created -
+CSTACK$$Limit           0x001800          --   Gb  - Linker created -
+INTVEC$$Base            0x008000          --   Gb  - Linker created -
+INTVEC$$Limit           0x008080          --   Gb  - Linker created -
+Region$$Table$$Base     0x00822f          --   Gb  - Linker created -
+Region$$Table$$Limit    0x008237          --   Gb  - Linker created -
+__DebugBreak            0x0082e0    0x1  Code  Gb  __dbg_break.o [3]
+__exit                  0x0082a8   0x14  Code  Gb  __dbg_xxexit.o [3]
+__iar_data_init2        0x008291   0x17  Code  Gb  init.o [4]
+__iar_program_start     0x0082bc         Code  Gb  cstartup.o [4]
+__iar_unhandled_exception
+                        0x0082dd         Code  Gb  unhandled_exception.o [4]
+__iar_zero_init2        0x008273         Code  Gb  init_small.o [4]
+__intvec                0x008000         Data  Gb  interrupt.o [4]
+__low_level_init        0x0082d7    0x3  Code  Gb  low_level_init.o [4]
+_exit                   0x0082cf         Code  Gb  cexit.o [4]
+_tx_buffer              0x00000c  0x100  Data  Gb  main.o [1]
+_tx_buffer_head         0x00010c    0x2  Data  Gb  main.o [1]
+_tx_buffer_tail         0x00010e    0x2  Data  Gb  main.o [1]
+exit                    0x0082da    0x3  Code  Gb  exit.o [4]
+i2c_init                0x0081cc   0x3f  Code  Gb  main.o [1]
+main                    0x00820b   0x24  Code  Gb  main.o [1]
+read_buffer             0x0080eb   0x54  Code  Gb  main.o [1]
+spi_init                0x008186   0x46  Code  Gb  main.o [1]
+spi_wr_cmd              0x008237   0x1e  Code  Gb  main.o [1]
+spi_wr_dat              0x008255   0x1e  Code  Gb  main.o [1]
+uart_init               0x00813f   0x47  Code  Gb  main.o [1]
+
+
+[1] = C:\Users\feng\Documents\Tencent Files\1074485750\FileRecv\[LCD12864_STM8]\[DFR0558]Digital Thermocouple High Temperature Sensor(K-Type)(V1.0)源码\Debug\Obj
+[2] = command line
+[3] = dbgstm8smd.a
+[4] = dlstm8smn.a
+
+  601 bytes of readonly  code memory
+  136 bytes of readonly  data memory
+  528 bytes of readwrite data memory
+
+Errors: 14
+Warnings: none
