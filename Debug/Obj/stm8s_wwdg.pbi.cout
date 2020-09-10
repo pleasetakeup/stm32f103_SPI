@@ -1,22 +1,22 @@
-"C:\Users\feng\Desktop\iic_to_spi\fwlib\src\stm8s_wwdg.c"
+"C:\Users\feng\Desktop\stm32f103_UART\fwlib\src\stm8s_wwdg.c"
 -std=c99
 -ferror-limit=100
 -I
-C:\Users\feng\Desktop\iic_to_spi\fwlib\inc
+C:\Users\feng\Desktop\stm32f103_UART\fwlib\inc
 -I
-C:\Users\feng\Desktop\iic_to_spi\fwlib\src
+C:\Users\feng\Desktop\stm32f103_UART\fwlib\src
 -I
-C:\Users\feng\Desktop\iic_to_spi\user
+C:\Users\feng\Desktop\stm32f103_UART\user
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.3\stm8\inc
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.3\stm8\inc\c
 -I
-C:\Users\feng\Desktop\iic_to_spi\fwlib\inc
+C:\Users\feng\Desktop\stm32f103_UART\fwlib\inc
 -I
-C:\Users\feng\Desktop\iic_to_spi\fwlib\src
+C:\Users\feng\Desktop\stm32f103_UART\fwlib\src
 -I
-C:\Users\feng\Desktop\iic_to_spi\user
+C:\Users\feng\Desktop\stm32f103_UART\user
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0

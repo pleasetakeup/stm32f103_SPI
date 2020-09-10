@@ -32,6 +32,8 @@
 #include "stm8s_it.h"
 #include "stm8s_gpio.h"
 #include "stm8s_uart1.h"
+#include "stm8s_exti.h"
+//#include "stm8s_tim1.h"
 //#include "spi.h"
 //#include "i2c.h"
 
@@ -39,52 +41,60 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
+#define ASR_MIC 0x0b
+#define ASR_MONO 0x23
 
 
+#define ASR_CLK_IN   	          24///频率
+#define ASR_PLL_11			(uint8_t)((ASR_CLK_IN/2.0)-1)
+#define ASR_PLL_ASR_19 		(uint8_t)(ASR_CLK_IN*32.0/(ASR_PLL_11+1) - 0.51)
+#define ASR_PLL_ASR_1B 		0x48
+#define ASR_PLL_ASR_1D 		0x1f
 
-//#if !defined(SERIAL_TX_BUFFER_SIZE)
-//#if ((RAMEND - RAMSTART) < 1023)
-//#define SERIAL_TX_BUFFER_SIZE 8
-//#else
-#define SERIAL_TX_BUFFER_SIZE 256        //buffer大小
-#define SPI_TX_BUFFER_SIZE    256              
-//#endif
-//#endif
-//#if !defined(SERIAL_RX_BUFFER_SIZE) //用于选择发送和接收的Buffer大小
-//#if ((RAMEND - RAMSTART) < 1023)
-//#define SERIAL_RX_BUFFER_SIZE 16
-//#else
-//#define SERIAL_RX_BUFFER_SIZE 64
-//#endif
-//#endif
+#define ASR_MIC_VOL 0x55//ADC增益初始值
+#define ASR_SPEECH_ENDPOINT 0x10//语音端点检测初始值
+#define ASR_SPEECH_START_TIME 0x08//语音端点检测开始时间初始值
+#define ASR_SPEECH_END_TIME 0x10//语音端点检测结束时间初始值
+#define ASR_VOICE_MAX_LENGHT 0xC3//最长语音段时间，默认20秒
+#define ASR_NOISE_TIME 0x02//忽略上电噪声时间
 
+#define SERIAL_TX_BUFFER_SIZE 128        //buffer大小
+#define SPI_TX_BUFFER_SIZE    128              
 
-//#if (SERIAL_TX_BUFFER_SIZE>256)   //根据buffer的大小，确定头尾指针的类型
-//typedef uint16_t tx_buffer_index_t;    
-//#else
 typedef uint16_t tx_buffer_index_t;
-//#endif
-//#if  (SERIAL_RX_BUFFER_SIZE>256)
-//typedef uint16_t rx_buffer_index_t;  //存储接收数据的buffer大小
-//#else
-//typedef uint8_t rx_buffer_index_t;
-//#endif
 
 
 #define	I2C_SLAVE_ADDRES (0x50)
+
+typedef enum {
+  
+  BEGIN,
+  ADDCOMMAND,
+  START,
+  LOOP,
+  PASSWORD,
+  BUTTON,
+  IDLE,
+}eCondition_t;
+
+
+eCondition_t condition = IDLE;
+eCondition_t _mode = IDLE;
+
 
 unsigned char a = 0;
 unsigned char b = 1;
 unsigned char c = 0;
 uint8_t regaddr; //在i2c中获得regaddr的值
 
-//unsigned char _rx_buffer[SERIAL_RX_BUFFER_SIZE];
+
 uint8_t _tx_buffer[SERIAL_TX_BUFFER_SIZE];  //设定存储数据的数组
 
 uint8_t _spi_buffer[SPI_TX_BUFFER_SIZE];  //设定存储数据的数组
 
-//rx_buffer_index_t _rx_buffer_head; 
-//rx_buffer_index_t _rx_buffer_tail;
+uint8_t command[80];  // 命令数组
+
+
 volatile tx_buffer_index_t _tx_buffer_head = 0 ;  
 volatile tx_buffer_index_t _tx_buffer_tail = 0 ;  
 
@@ -92,12 +102,15 @@ volatile tx_buffer_index_t _spi_buffer_head = 0 ;
 volatile tx_buffer_index_t _spi_buffer_tail = 0 ;  
 
 volatile uint8_t ready = 0;
-volatile uint8_t readyWrite = 0;
+volatile uint8_t commandNum = 0;
 
-volatile uint8_t startRead = 0;
-volatile uint8_t lastData = 0;
+volatile uint8_t commandLen = 0;
+volatile uint8_t state = 0 ;
+uint8_t state1 = 0 ;
+uint8_t startCommend = 0 ;
+uint8_t gMic;
 
-volatile uint8_t reset = 0;
+
 
 void Delay(u32 nCount)
 {
@@ -216,7 +229,7 @@ void i2c_init(void)
 	//GPIO_Init(GPIOB , GPIO_PIN_4 , GPIO_MODE_OUT_OD_HIZ_FAST);//I2C_SCL
 	//GPIO_Init(GPIOB , GPIO_PIN_5 , GPIO_MODE_OUT_OD_HIZ_FAST);//I2C_SDA
 
-	I2C_Init((uint32_t)(800000), (I2C_SLAVE_ADDRES << 1), 
+	I2C_Init((uint32_t)(8000000), (I2C_SLAVE_ADDRES << 1), 
 			 I2C_DUTYCYCLE_2 , I2C_ACK_CURR , 
 			 I2C_ADDMODE_7BIT, 16 );
 
@@ -227,39 +240,75 @@ void i2c_init(void)
 
 void spi_init(void)
 {
-   //GPIO_Init(GPIOC , GPIO_PIN_3, GPIO_MODE_OUT_PP_HIGH_FAST);  //CS
-   //GPIO_Init(GPIOC , GPIO_PIN_4, GPIO_MODE_OUT_PP_HIGH_FAST);   //DC
-  CLK_PeripheralClockConfig(CLK_PERIPHERAL_SPI, ENABLE);
+
+  //CLK_PeripheralClockConfig(CLK_PERIPHERAL_SPI, ENABLE);
     SPI_DeInit();
-   
- //GPIO_Init(GPIOC, SPI_CS_PIN, GPIO_Mode_Out_PP_High_Fast);  
    GPIO_Init(GPIOC , GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);   //RST
    GPIO_Init(GPIOD , GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);
    SPI_Init(SPI_FIRSTBIT_MSB, SPI_BAUDRATEPRESCALER_2, SPI_MODE_MASTER,\
             SPI_CLOCKPOLARITY_HIGH, SPI_CLOCKPHASE_1EDGE, \
             SPI_DATADIRECTION_2LINES_FULLDUPLEX, SPI_NSS_SOFT, 0x07);   
-  //SPI_ITConfig(SPI_IT_RXNE  , ENABLE);
    SPI_Cmd(ENABLE);     
 }
 
 void SPI_Slave_check_event_ISR(void){
   uint8_t  data = 0;
-  /*
-   if(SPI_GetFlagStatus(SPI_FLAG_RXNE) == 1){
-    //data1 = 0x22;
-   // data1 = (uint8_t)SPI->DR;
-  uart1_txdata(data1);
-     spi_write_buffer(data);
-   }  
-   */
- // uart1_txdata(0x36);
- // GPIO_WriteLow(GPIOA,GPIO_PIN_3);      //CS
    data = spi_read();
    spi_write_buffer(data);
-   //uart1_txdata(data);
-  // GPIO_WriteHigh(GPIOA,GPIO_PIN_3);      //CS
 }
 
+void simulateReg(uint8_t sendData){
+  
+  if(sendData == 0xA1){
+     condition = BEGIN;  
+  }
+  
+  if(sendData == 0xA3){
+    ready = 0;
+    condition = ADDCOMMAND;
+    commandLen = 0;
+  }
+
+  if(ready == 1) {
+    command[commandLen++] =  sendData;
+    if(commandNum == 1)  startCommend = command[0];
+  }  
+
+  if(sendData == 0xA2){    
+    ready = 1;
+    commandNum++;
+  }
+  
+  if(sendData == 0xA4  && ready == 0){
+    condition = START;
+  }
+  
+  if(sendData == 0xA5  && ready == 0){
+    condition = LOOP;
+    _mode = LOOP;
+  }
+  if(sendData == 0xA6  && ready == 0){
+    condition = PASSWORD;
+    _mode = PASSWORD;
+  }
+  if(sendData == 0xA7  && ready == 0){
+    condition = BUTTON;
+    _mode = BUTTON;
+  }
+  if(sendData == 0xA8  && ready == 0){
+    state1 = 0;
+    
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_5);  
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_6);  
+  }
+  if(sendData == 0xA9  && ready == 0){
+     gMic = ASR_MIC;
+  }
+  if(sendData == 0xAA  && ready == 0){
+     gMic = ASR_MONO;
+  }  
+}
 
 
 void write_buffer(u8 data)
@@ -269,55 +318,9 @@ void write_buffer(u8 data)
   tx_buffer_index_t i = (_tx_buffer_head + 1) % SERIAL_TX_BUFFER_SIZE;  
   while(i == _tx_buffer_tail)  //说明buffer满了     
   {      
-      sendData = _tx_buffer[_tx_buffer_tail];
-
-      if(ready == 1)    {
-        ready = 2;
-        
-        
-      }
-      if(readyWrite == 2) {
-        
-        readyWrite = 3;
-        if(sendData == 255 && reset == 1 && lastData == 0x04){
-          reset = 2;
-          //uart1_txdata(0x11);
-        }
-        else{
-           reset = 0;
-        }
-        
-      }
       
-      if(readyWrite == 1) {
-        if(sendData == 0x04)  reset = 1;
-          readyWrite = 2;
-      }
-      if(sendData == 0x05   && readyWrite==0 && ready == 0)  {
-        GPIO_WriteLow(GPIOC,GPIO_PIN_3);
-       // uart1_txdata(0x12);
-        ready = 1 ;
-      }
-      if(sendData == 0x04 && readyWrite ==0 && ready == 0){
-        GPIO_WriteLow(GPIOC,GPIO_PIN_3);
-      //  uart1_txdata(0x11);
-        readyWrite = 1;
-      }
-        
-      if(ready == 2){
-        ready = 0;
-        startRead += 1;   
-      }
-      
-      //uart1_txdata(sendData);
-      spi_write(_tx_buffer[_tx_buffer_tail]);  
-      lastData = sendData;
+      simulateReg(_tx_buffer[_tx_buffer_tail]);
       _tx_buffer_tail = (_tx_buffer_tail + 1) % SERIAL_TX_BUFFER_SIZE;
-      
-     if(readyWrite == 3){
-         readyWrite = 0;
-         GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
-      }
       
   }
   _tx_buffer[_tx_buffer_head] = data; //将数据存入了_tx_buffer中，
@@ -327,68 +330,17 @@ void write_buffer(u8 data)
 
 
 unsigned char read_buffer()
-{
-  //将存储的buffer中的数据发送出去
-  //检验：将SPI的MOSI与MISO相接，用一个变量接收MISO的值，\
-          看这个变量的值是否与MOSI发送的一致  
-    u8 sendData;
+{  
+  u8 sendData;
   if (_tx_buffer_head == _tx_buffer_tail)  //buffer为空，没有数据
   {
    return 0;
   } 
   else
   {
-      sendData = _tx_buffer[_tx_buffer_tail];
-
-      if(ready == 1)    {
-        ready = 2;
-        
-        
-      }
-      if(readyWrite == 2) {
-        
-        readyWrite = 3;
-        if(sendData == 255 && reset == 1 && lastData == 0x04){
-          reset = 2;
-          //uart1_txdata(0x11);
-        }
-        else{
-           reset = 0;
-        }
-        
-      }
-      
-      if(readyWrite == 1) {
-        if(sendData == 0x04)  reset = 1;
-          readyWrite = 2;
-      }
-      if(sendData == 0x05   && readyWrite==0 && ready == 0)  {
-        GPIO_WriteLow(GPIOC,GPIO_PIN_3);
-       // uart1_txdata(0x12);
-        ready = 1 ;
-      }
-      if(sendData == 0x04 && readyWrite ==0 && ready == 0){
-        GPIO_WriteLow(GPIOC,GPIO_PIN_3);
-      //  uart1_txdata(0x11);
-        readyWrite = 1;
-      }
-        
-      if(ready == 2){
-        ready = 0;
-        startRead += 1;   
-      }
-     
-      
-      //uart1_txdata(sendData);
-      spi_write(_tx_buffer[_tx_buffer_tail]);  
-      lastData = sendData;
+      ///spi_write(_tx_buffer[_tx_buffer_tail]);  
+    simulateReg(_tx_buffer[_tx_buffer_tail]);
       _tx_buffer_tail = (_tx_buffer_tail + 1) % SERIAL_TX_BUFFER_SIZE;
-      
-     if(readyWrite == 3){
-         readyWrite = 0;
-         GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
-      }
-      
   } 
   
 }
@@ -397,10 +349,7 @@ unsigned char read_buffer()
 //IIC接收数据和SPI发送数据都在此函数实现。（中断）
 void I2C_byte_received(u8 u8_RxData)
 {
-	
-   // data1 = u8_RxData;
-    write_buffer(u8_RxData);
-	
+    write_buffer(u8_RxData);	
 }
 
 void spi_read_buffer(){
@@ -418,18 +367,7 @@ void spi_read_buffer(){
 }
 
 
-void spi_writeBuffer(void){
-  
- // uint8_t data3;
-  if(startRead != 0){
-        spi_write_buffer(spi_read());
-        
-        GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
 
-        startRead -= 1;
-
-  }
-  }
 
 void I2C_Slave_check_event_ISR(void) {
   
@@ -482,52 +420,39 @@ void I2C_Slave_check_event_ISR(void) {
 	/* More bytes to transmit ? */
 	if ((sr1 & (I2C_SR1_TXE | I2C_SR1_BTF)) == (I2C_SR1_TXE | I2C_SR1_BTF))
 	{ 
-	 //spi_read_buffer();	
-          //I2C->DR = 0x60;
-        //   I2C_SendData(0xc7);
+          //spi_read_buffer();
 	}
 	/* Byte to transmispi_init();t ? */
 	if (sr1 & I2C_SR1_TXE)
 	{
-	spi_read_buffer();	
-      //I2C->DR = _spi_buffer[_spi_buffer_tail];  
-    // _spi_buffer_tail = (_spi_buffer_tail + 1) % SPI_TX_BUFFER_SIZE;
-        //I2C_SendData(0xc7);
-          // I2C->DR = 0x60;
+	  spi_read_buffer();	
+
 	}	
-	//GPIOD->ODR^=1;    
- 
+
 }
 
 
 
 void spi_writeReg(uint8_t addr ,uint8_t data){
  GPIO_WriteLow(GPIOC,GPIO_PIN_3); 
-  Delay(1000);
+ 
   spi_write(0x04);
-
   spi_write(addr);
-
   spi_write(data);
-
   GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
 }
 
 uint8_t spi_readReg(uint8_t addr){
    uint8_t regData = 0x00;
    GPIO_WriteLow(GPIOC,GPIO_PIN_3); 
-   Delay(1000);
    spi_write(0x05);
-
    spi_write(addr);
-  //Delay(2000);
-  regData = spi_read();
-  GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
+   regData = spi_read();
+   GPIO_WriteHigh(GPIOC,GPIO_PIN_3);
   
   return regData;
 }
 void initLd3320(void){
-  
   
   GPIO_WriteHigh(GPIOD,GPIO_PIN_3); 
   Delay(1000);
@@ -540,80 +465,459 @@ void initLd3320(void){
   Delay(1000);
   GPIO_WriteHigh(GPIOC,GPIO_PIN_3); 
   Delay(1000);
-  //spi_writeReg(0xb9, 0x00);
+  spi_writeReg(0xb9, 0x00);
   
 }
-/*
-u8 SPI_WriteByte(u8 byte)
+
+
+int LDbegin()
 {
 
-while(SPI_GetFlagStatus(SPI_FLAG_TXE)==1); 
+  state = 0;
+   initLd3320();
+  spi_readReg(0x06);  
+  spi_writeReg(0x17, 0x35);
+   Delay(1000);
+  spi_readReg(0x06);  
+  spi_writeReg(0x89, 0x03);  
+   Delay(1000);
+  spi_writeReg(0xcf, 0x43);  
+   Delay(1000);
+  spi_writeReg(0xcb, 0x02);
+  spi_writeReg(0x11, ASR_PLL_11);  
+  spi_writeReg(0x1e,0x00);
+  spi_writeReg(0x19, ASR_PLL_ASR_19); 
+  spi_writeReg(0x1b, ASR_PLL_ASR_1B);	
+  spi_writeReg(0x1d, ASR_PLL_ASR_1D);
+   Delay(1000);;
+  spi_writeReg(0xcd, 0x04);
+  spi_writeReg(0x17, 0x4c); 
+   Delay(1000);
+  spi_writeReg(0xb9, 0x00);
+  spi_writeReg(0xcf, 0x4f);  
+   spi_writeReg(0x6f, 0xff); 
+  spi_writeReg(0xbd, 0x00);
+  spi_writeReg(0x17, 0x48);
+   Delay(1000);
+  spi_writeReg(0x3c, 0x80);  
+  spi_writeReg(0x3e, 0x07);
+  spi_writeReg(0x38, 0xff);  
+  spi_writeReg(0x3a, 0x07);
+  spi_writeReg(0x40, 0);   
+  spi_writeReg(0x42, 8);
+  spi_writeReg(0x44, 0); 
+  spi_writeReg(0x46, 8); 
+  Delay(100);
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_5);  
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_6); 
+  condition = IDLE;
+ 
+  return 1;
+}
 
-SPI->DR = byte; 
 
-while(SPI_GetFlagStatus(SPI_FLAG_RXNE)==0); 
+u32 numberBlink = 0;
 
-return SPI->DR; 
+bool blinkFlag = 0;
+uint8_t firstFlag = 0;
+void gpioInit()
+{
+    //GPD->PIN3 设置为输入模式 带上拉电阻输入 使能外部中断
+  GPIO_Init(GPIOA , GPIO_PIN_3 , GPIO_MODE_IN_PU_IT); 
+  
+  EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOA , EXTI_SENSITIVITY_RISE_FALL); //PD端口为下降沿触发中断
 
 }
-**/
+
+void blink(){
+  
+  if(firstFlag ==   0){
+    if(_mode == LOOP){
+       GPIO_WriteLow(GPIOD,GPIO_PIN_4);
+      //goto out;
+       // EXTI_DeInit();
+        firstFlag++;
+    }
+    else if(_mode == BUTTON){
+       //GPIO_WriteLow(GPIOD,GPIO_PIN_6);
+         disableInterrupts();  //关闭系统总中断
+         gpioInit();
+         __enable_interrupt();
+       firstFlag++;
+    }
+    else if(_mode == PASSWORD && state1 == 1){
+       //GPIO_WriteLow(GPIOD,GPIO_PIN_4);
+      // GPIO_WriteLow(GPIOD,GPIO_PIN_5);
+     //  GPIO_WriteLow(GPIOD,GPIO_PIN_6);
+    //  EXTI_DeInit();  
+      firstFlag++;
+    }
+    else{
+    
+    }
+   
+        
+    }
+    
+ 
+  if(blinkFlag == 1){
+     numberBlink++;
+  
+  } 
+  else{
+    return;
+  }
+  if(numberBlink == 5000){
+    
+    if(_mode == LOOP){
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_4);
+    }
+    else if(_mode == BUTTON){
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_6);
+    }
+    else if(_mode == PASSWORD){
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_5);  
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_6);  
+      
+    }
+  }
+  if(numberBlink == 10000){
+    if(_mode == LOOP){
+    GPIO_WriteLow(GPIOD,GPIO_PIN_4);
+    }
+    else if(_mode == BUTTON){
+    GPIO_WriteLow(GPIOD,GPIO_PIN_6);
+    }
+    else if(_mode == PASSWORD){
+      GPIO_WriteLow(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteLow(GPIOD,GPIO_PIN_5);  
+    GPIO_WriteLow(GPIOD,GPIO_PIN_6);  
+      
+    }
+  }
+  if(numberBlink == 15000)
+    if(_mode == LOOP){
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_4);
+    }
+    else if(_mode == BUTTON){
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_6);
+    }
+    else if(_mode == PASSWORD){
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteHigh(GPIOD,GPIO_PIN_5);  
+    GPIO_WriteHigh(GPIOD,GPIO_PIN_6);  
+      
+    }
+  
+  if(numberBlink >= 20000){
+    if(_mode == LOOP){
+    GPIO_WriteLow(GPIOD,GPIO_PIN_4);
+    }
+    else if(_mode == BUTTON){
+    GPIO_WriteLow(GPIOD,GPIO_PIN_6);
+    }
+    else if(_mode == PASSWORD){
+      GPIO_WriteLow(GPIOD,GPIO_PIN_4);  
+      GPIO_WriteLow(GPIOD,GPIO_PIN_5);  
+    GPIO_WriteLow(GPIOD,GPIO_PIN_6);  
+      
+    }
+    blinkFlag = 0;
+    numberBlink = 0;
+    
+    _mode =  IDLE;
+  }
+  
+}
+
+int read(){
+   uint8_t Asr_Count=0;
+   uint8_t  readnum = 0xFF;
+  //  GPIO_WriteLow(GPIOD,GPIO_PIN_4);
+    if((spi_readReg(0x2b) & 0x10) && spi_readReg(0xb2)==0x21 && spi_readReg(0xbf) == 0x35)//如果有语音识别中断、DSP闲、ASR正常结束
+    {
+      spi_writeReg(0x29,0) ;///////////关中断
+      spi_writeReg(0x02,0) ;/////////////关FIFO中断
+      Asr_Count = spi_readReg(0xba);//读中断辅助信息
+      if(Asr_Count>=1 && Asr_Count<4) //////如果有识别结果
+      {
+          readnum=spi_readReg(0xc5);
+          spi_write_buffer(readnum);
+          blinkFlag = 1;
+      }
+      else{
+          spi_write_buffer(readnum);
+      
+      }
+      spi_writeReg(0x2b,0);//////清楚中断编号
+      spi_writeReg(0x1C,0);////////貌似关麦克风啊~~为毛
+      spi_writeReg(0x37, 0x06);//开始识别
+      spi_writeReg(0x1c, gMic);//选择麦克风
+      spi_writeReg(0x29, 0x10);//开同步中断
+      spi_writeReg(0xbd, 0x00);///启动为语音识别
+    }
+    else{
+      spi_write_buffer(readnum);
+    
+    }
+   return readnum;
+}
+
+
+int checkBus()
+{ 
+  int j;
+  for (j=0; j<10; j++)
+	{
+	  if (spi_readReg(0xb2) == 0x21)
+		{
+			return 1;
+		}
+	  Delay(100);		
+	}
+  return 0;
+}
+void RGB_init()
+{
+  GPIO_Init(GPIOD, GPIO_PIN_4, GPIO_MODE_OUT_PP_LOW_FAST);
+  GPIO_Init(GPIOD, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_FAST);
+  GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_OUT_PP_LOW_FAST);
+
+  GPIO_WriteHigh(GPIOD,GPIO_PIN_6);
+  GPIO_WriteHigh(GPIOD,GPIO_PIN_4);
+  GPIO_WriteHigh(GPIOD,GPIO_PIN_5);
+
+}
+
+uint8_t start(){
+
+  spi_writeReg(0x35, ASR_MIC_VOL);////adc增益；会影响识别范围即噪声
+  spi_writeReg(0xb3, ASR_SPEECH_ENDPOINT);//语音端点检测控制
+  spi_writeReg(0xb4, ASR_SPEECH_START_TIME);//语音端点起始时间
+  spi_writeReg(0xb5, ASR_SPEECH_END_TIME);//语音结束时间
+  spi_writeReg(0xb6, ASR_VOICE_MAX_LENGHT);//语音结束时间
+  spi_writeReg(0xb7, ASR_NOISE_TIME);//噪声时间
+  spi_writeReg(0x1c, 0x09);////////麦克风设置保留
+  spi_writeReg(0xbd, 0x20);/////////保留设置
+  spi_writeReg(0x08, 0x01);///////////清除FIFO_DATA
+  Delay(1000);
+  spi_writeReg(0x08, 0x00);////////////清除指定FIFO后再写入一次00H
+  Delay(1000);
+  if(checkBus() == 0)////////读取0xB2寄存器函数如果DSP没在闲状态则RETURN 0
+  {
+     return 0;
+  }
+  spi_writeReg(0xb2, 0xff);////////给0xB2写FF
+  
+  spi_writeReg(0x37, 0x06);////////开始识别
+  Delay(5);
+  spi_writeReg(0x1c, gMic);////////选择麦克风
+  spi_writeReg(0x29, 0x10);////////开同步中断
+  spi_writeReg(0xbd, 0x00);/////////启动为语音识别
+  
+  
+  condition = IDLE;
+  firstFlag = 0;
+  
+  
+  
+  return 1;////返回1
+}
+
+
+void addCommand()
+{
+
+    int i;
+    spi_writeReg(0xc1, command[0]);
+    spi_writeReg(0xc3, 0x00);
+    spi_writeReg(0x08, 0x04);
+    Delay(1000);
+    spi_writeReg(0x08, 0x00);
+    Delay(1000);
+    for(i=2;i<command[1] + 2;i++)
+    {
+        spi_writeReg(0x5, command[i]);
+
+    }
+    spi_writeReg(0xb9, command[1]);
+    spi_writeReg(0xb2, 0xff); 
+    spi_writeReg(0x37, 0x04);
+    condition = IDLE;
+}
+
+int loopMode(){
+  read();
+  condition = IDLE;
+
+}
+
+int commandMode(){
+   uint8_t Asr_Count=0;
+   
+   uint8_t  readnum = 0xFF;
+   
+    if((spi_readReg(0x2b) & 0x10) && spi_readReg(0xb2)==0x21 && spi_readReg(0xbf) == 0x35)//如果有语音识别中断、DSP闲、ASR正常结束
+    {
+      spi_writeReg(0x29,0) ;///////////关中断
+      spi_writeReg(0x02,0) ;/////////////关FIFO中断
+      Asr_Count = spi_readReg(0xba);//读中断辅助信息
+      if(Asr_Count>=1 && Asr_Count<4) //////如果有识别结果
+      {
+          readnum=spi_readReg(0xc5);
+          if(readnum == startCommend){
+            state1 = 1;
+             blinkFlag = 1;
+            spi_write_buffer(readnum);
+            
+          }
+          else if(state1 == 1){
+            spi_write_buffer(readnum); 
+            blinkFlag = 1;
+          }
+          else{
+            spi_write_buffer(0xff);
+          
+          }
+      }
+      else{
+          spi_write_buffer(readnum);
+      
+      }
+      spi_writeReg(0x2b,0);//////清楚中断编号
+      spi_writeReg(0x1C,0);////////貌似关麦克风啊~~为毛
+      spi_writeReg(0x37, 0x06);//开始识别
+      spi_writeReg(0x1c, gMic);//选择麦克风
+      spi_writeReg(0x29, 0x10);//开同步中断
+      spi_writeReg(0xbd, 0x00);///启动为语音识别
+    }
+    else{
+      spi_write_buffer(readnum);
+    
+    }
+   condition = IDLE;
+   return readnum;
+  
+}
+int buttonMode(){
+  
+   uint8_t Asr_Count=0;
+   uint8_t  readnum = 0xFF;
+   
+    if((spi_readReg(0x2b) & 0x10) && spi_readReg(0xb2)==0x21 && spi_readReg(0xbf) == 0x35)//如果有语音识别中断、DSP闲、ASR正常结束
+    {
+      spi_writeReg(0x29,0) ;///////////关中断
+      spi_writeReg(0x02,0) ;/////////////关FIFO中断
+      Asr_Count = spi_readReg(0xba);//读中断辅助信息
+      if(Asr_Count>=1 && Asr_Count<4 ) //////如果有识别结果
+      {
+          readnum=spi_readReg(0xc5);
+          if( state == 1){
+            spi_write_buffer(readnum);
+            blinkFlag = 1;
+          }
+          else
+          {
+            spi_write_buffer(0xff);
+          }
+      }
+      else{
+          spi_write_buffer(readnum);
+      
+      }
+      spi_writeReg(0x2b,0);//////清楚中断编号
+      spi_writeReg(0x1C,0);////////貌似关麦克风啊~~为毛
+      spi_writeReg(0x37, 0x06);//开始识别
+      spi_writeReg(0x1c, gMic);//选择麦克风
+      spi_writeReg(0x29, 0x10);//开同步中断
+      spi_writeReg(0xbd, 0x00);///启动为语音识别
+    }
+    else{
+      spi_write_buffer(readnum);
+    
+    }
+   condition = IDLE;
+   return readnum;
+
+}
+
+
+
+
+
+void EXIT_ASR(){
+
+   // Delay(100);
+   // if(GPIO_ReadInputPin(GPIOA , GPIO_PIN_3) == RESET)   //判断是否是PD->3,被按下，即KEY1,也可以说这个判断是PD端口区分是哪个引脚被按下的主要标志
+ // {
+    if(_mode == BUTTON){
+      //state = 1 - state;
+        if(GPIO_ReadInputPin(GPIOA , GPIO_PIN_3) == RESET)   //判断是否是PD->3,被按下，即KEY1,也可以说这个判断是PD端口区分是哪个引脚被按下的主要标志
+             {
+                  state = 1;
+                  GPIO_WriteLow(GPIOD,GPIO_PIN_6);           //异或取反控制LED1的亮灭
+             }else{
+               state = 0;
+                   GPIO_WriteHigh(GPIOD,GPIO_PIN_6);
+    }
+}
+// }
+}
+
  void main(void)
 {
-         //data1  = 0x16;
-	//GPIO_WriteLow(GPIOC,GPIO_PIN_3);      //CS
-         
-         
-         uint8_t i;
+      //   uint8_t i;
           //SPI->DR = 12; 
         // CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV2);
+     //  disableInterrupts();  //关闭系统总中断
+   //__enable_interrupt();
 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
-        GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);
-      //  GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_OUT_PP_LOW_FAST);
-      //   uart_init(115200);
-      // GPIO_WriteLow(GPIOA,GPIO_PIN_3); 
+        //GPIO_Init(GPIOD, GPIO_PIN_3, GPIO_MODE_OUT_PP_LOW_FAST);
+      // GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_OUT_PP_LOW_FAST);
+        //GPIO_WriteHigh(GPIOD,GPIO_PIN_6);
+      //   uart_init(115200); 
+        
+       // setRGB();
 	spi_init();
-     /// GPIO_WriteHigh(GPIOD,GPIO_PIN_3); 
-     //   GPIO_WriteHigh(GPIOD,GPIO_PIN_6); 
-      //Delay(10000);
-     //   GPIO_WriteLow(GPIOD,GPIO_PIN_3); 
-	 
-       
-        
-        
-          
-       //   GPIO_WriteHigh(GPIOC,GPIO_PIN_3); 
-       // 
-	//spi_writeReg(0xb9, 0x00);
-        //uart1_txdata(0x88);
         i2c_init();
+        RGB_init();
+        //gpioInit();
 	__enable_interrupt();
         while(1)
         {
-         //uart1_txdata(0x88);
-         ////GPIO_WriteLow(GPIOA,GPIO_PIN_3);
-          
-         // Delay(1000000);
-          
-          if(reset == 2)  {
-            reset = 0;
-            __disable_interrupt();
-             initLd3320();
-           __enable_interrupt();
+           read_buffer();
+           blink();
+           switch (condition)             // 根据menu()的结果跳转
+           {
+              case      BEGIN:  LDbegin();
+                         break; 
+              case     ADDCOMMAND: addCommand();               // 执行动作1
+                        break;           // 不执行任何其他动作
+              case      START: start();
+                        break;   
+              case       LOOP: loopMode();       // 执行动作2
+                        break;           // 不执行默认的动作
+              case   PASSWORD: commandMode();       // 执行动作2
+                       break;    
+              case     BUTTON: buttonMode();       // 执行动作2
+                        break;    
+              case       IDLE:     // 执行动作2
+                        break;   
+              default: break; // 如果没有识别到任何命令，输出一个警告信息
+           }
+           
           }
       
-        read_buffer();
-       spi_writeBuffer();
+       //read_buffer();
+       //spi_writeBuffer();
           //ready = spi_readReg(0x06);
          // uart1_txdata(ready);
        //uart1_txdata(spi_readReg(0x09));
       //  uart1_txdata(spi_readReg(0x06));
            
         }
-}
-
-
-
-
 
 #ifdef USE_FULL_ASSERT
 

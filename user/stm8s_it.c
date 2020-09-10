@@ -117,6 +117,7 @@ INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+    EXIT_ASR();
 }
 
 /**
@@ -214,7 +215,7 @@ INTERRUPT_HANDLER(EXTI_PORTE_IRQHandler, 7)
   */
 INTERRUPT_HANDLER(SPI_IRQHandler, 10)
 {
-  SPI_Slave_check_event_ISR();
+  //SPI_Slave_check_event_ISR();
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
@@ -230,6 +231,7 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
   /* In order to detect unexpected events during development,
      it is recommended to set a breakpoint on the following instruction.
   */
+
 }
 
 /**
@@ -343,6 +345,7 @@ INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
   */
  INTERRUPT_HANDLER(UART1_RX_IRQHandler, 18)
  {
+   //uart_rxgetdata();
     /* In order to detect unexpected events during development,
        it is recommended to set a breakpoint on the following instruction.
     */

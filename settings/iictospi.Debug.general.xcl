@@ -2,7 +2,7 @@
 
 "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.3\stm8\bin\stm8stlink.dll" 
 
-"C:\Users\feng\Desktop\iic_to_spi\Debug\Exe\iictospi.out" 
+"C:\Users\feng\Desktop\addrScan\stm32f103_UART\Debug\Exe\iictospi.out" 
 
 --plugin "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.3\stm8\bin\stm8bat.dll" 
 
